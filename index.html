@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>内容神器 - 社交媒体文案生成器</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); min-height: 100vh; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; background: white; border-radius: 20px; box-shadow: 0 25px 80px rgba(0,0,0,0.4); overflow: hidden; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; }
+        .header h1 { font-size: 26px; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .header p { opacity: 0.9; font-size: 14px; }
+        .badge { background: #ffd700; color: #333; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+        .content { padding: 30px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        @media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; color: #333; font-size: 14px; }
+        input, select, textarea { width: 100%; padding: 12px 16px; border: 2px solid #e8e8e8; border-radius: 10px; font-size: 14px; transition: all 0.3s; background: #fafafa; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: #667eea; background: white; }
+        textarea { min-height: 80px; resize: vertical; }
+        .platforms { display: flex; gap: 8px; flex-wrap: wrap; }
+        .platform-btn { padding: 10px 18px; border: 2px solid #e0e0e0; border-radius: 10px; background: white; cursor: pointer; transition: all 0.3s; font-weight: 500; font-size: 13px; }
+        .platform-btn.active { border-color: #667eea; background: #f0f3ff; color: #667eea; }
+        .platform-btn:hover { border-color: #667eea; }
+        .template-types { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+        .template-btn { padding: 6px 14px; border: 1px solid #ddd; border-radius: 20px; background: white; cursor: pointer; font-size: 12px; transition: all 0.3s; }
+        .template-btn.active { border-color: #764ba2; background: #764ba2; color: white; }
+        .generate-btn { width: 100%; padding: 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+        .generate-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4); }
+        .results { margin-top: 30px; display: none; }
+        .results.show { display: block; }
+        .results-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .results-header h2 { color: #333; font-size: 18px; }
+        .batch-btn { padding: 8px 16px; background: #52c41a; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 13px; }
+        .result-card { background: linear-gradient(135deg, #f8f9fa 0%, #fff 100%); border-radius: 14px; padding: 20px; margin-bottom: 14px; border: 1px solid #eee; transition: all 0.3s; }
+        .result-card:hover { box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
+        .result-card h3 { color: #333; margin-bottom: 10px; font-size: 15px; display: flex; align-items: center; gap: 8px; }
+        .result-card .content-text { background: white; padding: 14px; border-radius: 10px; line-height: 1.7; color: #555; white-space: pre-wrap; font-size: 13px; border: 1px solid #f0f0f0; }
+        .result-card .tags { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 6px; }
+        .result-card .tag { background: #f0f3ff; color: #667eea; padding: 4px 10px; border-radius: 15px; font-size: 11px; }
+        .result-card .best-time { background: #fff7e6; color: #fa8c16; padding: 4px 10px; border-radius: 15px; font-size: 11px; margin-left: auto; }
+        .action-btns { margin-top: 12px; display: flex; gap: 8px; }
+        .copy-btn { padding: 8px 14px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 12px; transition: all 0.3s; }
+        .copy-btn:hover { background: #5568d3; }
+        .download-btn { padding: 8px 14px; background: #52c41a; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 12px; }
+        .tips { background: linear-gradient(135deg, #fff9e6 0%, #fffbe6 100%); border-radius: 12px; padding: 16px; margin-top: 20px; border: 1px solid #ffe58f; }
+        .tips h4 { color: #d48806; margin-bottom: 10px; font-size: 14px; }
+        .tips ul { margin-left: 18px; color: #666; font-size: 13px; }
+        .tips li { margin-bottom: 5px; }
+        .stats { background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%); border-radius: 12px; padding: 16px; margin-top: 20px; display: flex; justify-content: space-around; text-align: center; }
+        .stats div { flex: 1; }
+        .stats .num { font-size: 24px; font-weight: 700; color: #2e7d32; }
+        .stats .label { font-size: 12px; color: #666; }
+        .footer { text-align: center; padding: 20px; color: #999; font-size: 12px; border-top: 1px solid #eee; }
+        .saved-list { margin-top: 20px; }
+        .saved-item { background: #f5f5f5; padding: 12px; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .saved-item span { font-size: 13px; color: #333; }
+        .saved-item button { padding: 4px 10px; background: #ff4d4f; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📱 内容神器 <span class="badge">免费</span></h1>
+            <p>小商家引流必备 | 10秒生成爆款文案</p>
+        </div>
+        <div class="content">
+            <div class="form-group">
+                <label>选择平台</label>
+                <div class="platforms">
+                    <button class="platform-btn active" data-platform="xiaohongshu">小红书</button>
+                    <button class="platform-btn" data-platform="douyin">抖音</button>
+                    <button class="platform-btn" data-platform="weixin">微信公众号</button>
+                    <button class="platform-btn" data-platform="weibo">微博</button>
+                    <button class="platform-btn" data-platform="zhihu">知乎</button>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>产品/服务名称</label>
+                    <input type="text" id="productName" placeholder="例如：手工蛋糕、瑜伽课">
+                </div>
+                <div class="form-group">
+                    <label>目标人群</label>
+                    <input type="text" id="target" placeholder="例如：年轻妈妈、上班族">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>产品特点（用逗号分隔）</label>
+                <input type="text" id="features" placeholder="例如：纯手工、无添加、当天新鲜、免费配送">
+            </div>
+            
+            <div class="form-group">
+                <label>文案类型</label>
+                <div class="template-types">
+                    <button class="template-btn active" data-type="promo">促销活动</button>
+                    <button class="template-btn" data-type="intro">产品介绍</button>
+                    <button class="template-btn" data-type="case">用户案例</button>
+                    <button class="template-btn" data-type="tips">干货教程</button>
+                    <button class="template-btn" data-type="story">情感故事</button>
+                    <button class="template-btn" data-type="qa">问答互动</button>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>促销活动（可选）</label>
+                <input type="text" id="promotion" placeholder="例如：限时8折、买二送一、新客减20">
+            </div>
+            
+            <button class="generate-btn" onclick="generate()">🚀 立即生成文案</button>
+            
+            <div class="stats">
+                <div><div class="num" id="generatedCount">0</div><div class="label">已生成</div></div>
+                <div><div class="num" id="savedCount">0</div><div class="label">已收藏</div></div>
+                <div><div class="num">免费</div><div class="label">版本</div></div>
+            </div>
+            
+            <div class="results" id="results">
+                <div class="results-header">
+                    <h2>✨ 生成的文案（共 <span id="resultCount">0</span> 条）</h2>
+                    <button class="batch-btn" onclick="saveAll()">💾 批量保存</button>
+                </div>
+                <div id="resultCards"></div>
+            </div>
+            
+            <div class="saved-list" id="savedList" style="display:none;">
+                <h3 style="margin-bottom: 10px; color: #333;">📂 已保存的文案</h3>
+                <div id="savedItems"></div>
+            </div>
+            
+            <div class="tips">
+                <h4>💡 发布最佳时间</h4>
+                <ul id="timeTips">
+                    <li>小红书：晚7-9点发布效果最好，配图要精美</li>
+                    <li>抖音：中午12-14点、晚18-22点流量大</li>
+                    <li>微信：早8-9点、晚21-22点打开率高</li>
+                    <li>微博：中午12-13点、晚20-22点活跃</li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer">
+            © 2026 内容神器 | 让获客变简单
+        </div>
+    </div>
+
+    <script>
+        let selectedPlatform = 'xiaohongshu';
+        let selectedType = 'promo';
+        let generatedResults = [];
+        let savedContents = JSON.parse(localStorage.getItem('savedContents') || '[]');
+        
+        // 初始化
+        document.getElementById('generatedCount').textContent = localStorage.getItem('generatedCount') || 0;
+        document.getElementById('savedCount').textContent = savedContents.length;
+        if (savedContents.length > 0) {
+            document.getElementById('savedList').style.display = 'block';
+            renderSaved();
+        }
+        
+        document.querySelectorAll('.platform-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.platform-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                selectedPlatform = this.dataset.platform;
+                updateTimeTips();
+            });
+        });
+        
+        document.querySelectorAll('.template-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.template-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                selectedType = this.dataset.type;
+            });
+        });
+        
+        function updateTimeTips() {
+            const tips = {
+                xiaohongshu: '小红书：晚7-9点发布效果最好，配图要精美，标题要有关键词',
+                douyin: '抖音：中午12-14点、晚18-22点流量大，前3秒要抓住眼球',
+                weixin: '微信：早8-9点、晚21-22点打开率高，标题要有吸引力',
+                weibo: '微博：中午12-13点、晚20-22点活跃，善于蹭热点',
+                zhihu: '知乎：任何时间都可以，内容质量是关键，要专业有深度'
+            };
+            document.getElementById('timeTips').innerHTML = `<li>${tips[selectedPlatform]}</li>`;
+        }
+        
+        function generate() {
+            const product = document.getElementById('productName').value.trim();
+            const features = document.getElementById('features').value.trim();
+            const target = document.getElementById('target').value.trim();
+            const promotion = document.getElementById('promotion').value.trim();
+            
+            if (!product) {
+                alert('请输入产品名称！');
+                return;
+            }
+            
+            const featureList = features ? features.split(',').map(f => f.trim()) : [];
+            const targetStr = target || '大家';
+            
+            generatedResults = createContent(selectedPlatform, selectedType, product, featureList, targetStr, promotion);
+            displayResults(generatedResults);
+            
+            // 更新计数
+            let count = parseInt(localStorage.getItem('generatedCount') || '0') + generatedResults.length;
+            localStorage.setItem('generatedCount', count);
+            document.getElementById('generatedCount').textContent = count;
+        }
+        
+        function createContent(platform, type, product, features, target, promotion) {
+            const templates = {
+                xiaohongshu: {
+                    promo: [
+                        { title: '🌸 限时' + (promotion || '优惠') + '！' + target + '必抢', content: generatePromoContent(product, features, target, promotion, 'xhs') },
+                        { title: '💕 姐妹们！' + product + '活动价来啦', content: generatePromoContent2(product, features, target, promotion, 'xhs') },
+                        { title: '📢 错过等一年！' + product + (promotion || '超值优惠'), content: generatePromoContent3(product, features, target, promotion, 'xhs') }
+                    ],
+                    intro: [
+                        { title: '✨ 私藏已久的' + product + '，今天分享出来', content: generateIntroContent(product, features, target, 'xhs') },
+                        { title: '💖 用了半年的' + product + '，真实分享', content: generateIntroContent2(product, features, target, 'xhs') }
+                    ],
+                    case: [
+                        { title: '👩 真实案例！' + target + '用' + product + '后变化', content: generateCaseContent(product, features, target, 'xhs') },
+                        { title: '⭐ 回头客第N次回购！' + product + '有多好用', content: generateCaseContent2(product, features, target, 'xhs') }
+                    ],
+                    tips: [
+                        { title: '📝 吐血整理！' + product + '选购指南', content: generateTipsContent(product, features, target, 'xhs') },
+                        { title: '💡 教你如何选择好的' + product, content: generateTipsContent2(product, features, target, 'xhs') }
+                    ],
+                    story: [
+                        { title: '💕 从事' + product + '的第N天，感悟分享', content: generateStoryContent(product, features, target, 'xhs') }
+                    ],
+                    qa: [
+                        { title: '❓ 大家都在问的' + product + '问题解答', content: generateQAContent(product, features, target, 'xhs') }
+                    ]
+                },
+                douyin: {
+                    promo: [
+                        { title: '🔥 速抢！' + (promotion || '限时优惠'), content: generatePromoContent(product, features, target, promotion, 'dy') },
+                        { title: '👀 才发现这么便宜的' + product, content: generatePromoContent2(product, features, target, promotion, 'dy') }
+                    ],
+                    intro: [
+                        { title: '👋 给大家介绍一下这个' + product, content: generateIntroContent(product, features, target, 'dy') }
+                    ],
+                    case: [
+                        { title: '真实反馈！客户用了都说好', content: generateCaseContent(product, features, target, 'dy') }
+                    ],
+                    tips: [
+                        { title: '💡 必看！' + product + '使用技巧', content: generateTipsContent(product, features, target, 'dy') }
+                    ],
+                    story: [],
+                    qa: []
+                },
+                weixin: {
+                    promo: [
+                        { title: '活动 | ' + product + (promotion || '优惠活动'), content: generatePromoContent(product, features, target, promotion, 'wx') },
+                        { title: '推荐 | ' + target + '必选的' + product, content: generateIntroContent(product, features, target, 'wx') }
+                    ],
+                    intro: [
+                        { title: '科普 | 什么是好的' + product, content: generateTipsContent(product, features, target, 'wx') }
+                    ],
+                    case: [],
+                    tips: [
+                        { title: '干货 | ' + product + '选购攻略', content: generateTipsContent2(product, features, target, 'wx') }
+                    ],
+                    story: [],
+                    qa: []
+                },
+                weibo: {
+                    promo: [
+                        { title: product + (promotion || '优惠活动'), content: generatePromoContent(product, features, target, promotion, 'wb') }
+                    ],
+                    intro: [],
+                    case: [],
+                    tips: [],
+                    story: [],
+                    qa: []
+                },
+                zhihu: {
+                    promo: [],
+                    intro: [],
+                    case: [],
+                    tips: [
+                        { title: '如何选择优质的' + product + '？', content: generateTipsContent(product, features, target, 'zh') },
+                        { title: '' + product + '深度测评', content: generateTipsContent2(product, features, target, 'zh') }
+                    ],
+                    story: [],
+                    qa: [
+                        { title: '关于' + product + '，你想知道的都在这里', content: generateQAContent(product, features, target, 'zh') }
+                    ]
+                }
+            };
+            
+            return (templates[platform]?.[type] || templates.xiaohongshu.promo).map(r => ({
+                ...r,
+                platform,
+                type
+            }));
+        }
+        
+        function generatePromoContent(product, features, target, promotion, platform) {
+            const featureStr = features.length > 0 ? features.join('、') : '优质';
+            const promoStr = promotion || '超值优惠';
+            const hashtags = `#${product} #${target}推荐 #${promotion || '优惠'}`;
+            
+            if (platform === 'xhs') {
+                return `姐妹们！今天必须给你们安利这个${product}！\n\n✨ 特点：${featureStr}\n\n📢 活动：${promoStr}\n\n作为${target}，我真的太爱了！不允许你们错过！\n\n${hashtags}`;
+            } else if (platform === 'dy') {
+                return `${featureStr}的${product}！\n\n现在只要${promoStr}！\n\n${target}赶紧冲！\n\n#${product} #好物推荐`;
+            } else {
+                return `各位${target}好！\n\n今天给大家推荐${product}。\n\n特点：${featureStr}\n\n活动：${promoStr}\n\n感兴趣的朋友可以私信了解~`;
+            }
+        }
+        
+        function generatePromoContent2(product, features, target, promotion, platform) {
+            const featureStr = features.length > 0 ? features.map((f, i) => (i+1) + '. ' + f).join('\n') : '优质';
+            const promoStr = promotion || '优惠';
+            
+            if (platform === 'xhs') {
+                return `💕 姐妹们！${product}活动价来啦！\n\n${featureStr}\n\n🎁 ${promoStr}\n\n真的超级划算！快去试试吧！\n\n#${product} #${target} #必看`;
+            } else {
+                return `家人们！${product}现在${promoStr}！\n\n${featureStr}\n\n冲！\n\n#${product} #必看`;
+            }
+        }
+        
+        function generatePromoContent3(product, features, target, promotion, platform) {
+            const featureStr = features.length > 0 ? features.join('、') : '好';
+            const promoStr = promotion || '超值';
+            
+            return `📢 重要通知！\n\n${product}\n\n✨ ${featureStr}\n\n💰 ${promoStr}\n\n数量有限，先到先得！\n\n#${product} #${promoStr}`;
+        }
+        
+        function generateIntroContent(product, features, target, platform) {
+            const featureStr = features.length > 0 ? features.join('\n✨ ') : '优质';
+            
+            return `姐妹们！今天不藏着掖着了！\n\n这个${product}是我回购N次的宝藏！\n\n✨ ${featureStr}\n\n特别适合${target}的姐妹们！\n\n答应我一定要试试！\n\n#${product} #好物分享 #必看`;
+        }
+        
+        function generateIntroContent2(product, features, target, platform) {
+            const featureStr = features.length > 0 ? features.join('、') : '好用';
+            
+            return `用了半年的${product}，今天来真实分享！\n\n✅ ${featureStr}\n\n作为${target}，真的是我的日常必备！\n\n强烈推荐给各位姐妹！\n\n#${product} #真实分享 #回购`;
+        }
+        
+        function generateCaseContent(product, features, target, platform) {
+            return `👩 真实案例分享\n\n${target}王女士使用了我们的${product}后反馈：\n\n"效果真的太好了！"\n\n✨ ${features.join('、')}\n\n#${product} #真实案例 #${target}`;
+        }
+        
+        function generateCaseContent2(product, features, target, platform) {
+            return `⭐ 回头客又来回购啦！\n\n用了${product}，${target}们都说好！\n\n${features.join('、')}\n\n感谢大家的信任和支持！\n\n#${product} #好评 #回购`;
+        }
+        
+        function generateTipsContent(product, features, target, platform) {
+            const tips = features.length > 0 ? features : ['看配料表', '看评价', '看价格'];
+            
+            return `📝 吐血整理！${product}选购指南\n\n给${target}的几点建议：\n\n${tips.map((t, i) => (i+1) + '. ' + t).join('\n')}\n\n希望对大家有帮助！\n\n#${product} #选购指南 #${target}`;
+        }
+        
+        function generateTipsContent2(product, features, target, platform) {
+            const featureStr = features.length > 0 ? features.join('、') : '优质';
+            
+            return `💡 教你如何选择好的${product}\n\n关键看几点：\n\n1. ${featureStr}\n2. 口碑好\n3. 性价比高\n\n按照这个标准选，不会错！\n\n#${product} #干货 #必看`;
+        }
+        
+        function generateStoryContent(product, features, target, platform) {
+            return `💕 从事${product}的第N天\n\n从一开始到现在，感恩每一位${target}的支持！\n\n我们会继续努力，提供更好的${product}！\n\n感谢大家的信任！\n\n#${product} #创业故事 #感恩`;
+        }
+        
+        function generateQAContent(product, features, target, platform) {
+            return `❓ 关于${product}，大家都在问的问题解答\n\nQ1: 适合${target}吗？\nA: 当然适合！\n\nQ2: 有什么特点？\nA: ${features.join('、')}\n\nQ3: 如何购买？\nA: 私信我就行~\n\n#${product} #问答 #${target}`;
+        }
+        
+        function displayResults(results) {
+            const container = document.getElementById('resultCards');
+            const bestTimes = {
+                xiaohongshu: '最佳发布时间：19:00-21:00',
+                douyin: '最佳发布时间：12:00-14:00 / 18:00-22:00',
+                weixin: '最佳发布时间：08:00-09:00 / 21:00-22:00',
+                weibo: '最佳发布时间：12:00-13:00 / 20:00-22:00',
+                zhihu: '最佳发布时间：全天'
+            };
+            const platformNames = { xiaohongshu: '小红书', douyin: '抖音', weixin: '微信', weibo: '微博', zhihu: '知乎' };
+            
+            container.innerHTML = results.map((r, i) => {
+                const tags = [platformNames[r.platform], r.type === 'promo' ? '促销' : r.type === 'intro' ? '介绍' : r.type === 'case' ? '案例' : r.type === 'tips' ? '干货' : '其他'];
+                return `
+                <div class="result-card">
+                    <h3>${r.title}</h3>
+                    <div class="content-text">${r.content}</div>
+                    <div class="tags">
+                        ${tags.map(t => `<span class="tag">${t}</span>`).join('')}
+                        <span class="best-time">${bestTimes[r.platform]}</span>
+                    </div>
+                    <div class="action-btns">
+                        <button class="copy-btn" onclick="copyText(this, ${i})">📋 复制</button>
+                        <button class="download-btn" onclick="saveOne(${i})">💾 保存</button>
+                    </div>
+                </div>
+            `}).join('');
+            
+            document.getElementById('resultCount').textContent = results.length;
+            document.getElementById('results').classList.add('show');
+        }
+        
+        function copyText(btn, index) {
+            const text = generatedResults[index].content;
+            navigator.clipboard.writeText(text).then(() => {
+                const original = btn.textContent;
+                btn.textContent = '✅ 已复制！';
+                setTimeout(() => btn.textContent = original, 2000);
+            });
+        }
+        
+        function saveOne(index) {
+            const item = generatedResults[index];
+            savedContents.push({ ...item, savedAt: new Date().toISOString() });
+            localStorage.setItem('savedContents', JSON.stringify(savedContents));
+            document.getElementById('savedCount').textContent = savedContents.length;
+            document.getElementById('savedList').style.display = 'block';
+            renderSaved();
+            alert('已保存！');
+        }
+        
+        function saveAll() {
+            generatedResults.forEach(item => {
+                savedContents.push({ ...item, savedAt: new Date().toISOString() });
+            });
+            localStorage.setItem('savedContents', JSON.stringify(savedContents));
+            document.getElementById('savedCount').textContent = savedContents.length;
+            document.getElementById('savedList').style.display = 'block';
+            renderSaved();
+            alert('全部已保存！');
+        }
+        
+        function renderSaved() {
+            const container = document.getElementById('savedItems');
+            container.innerHTML = savedContents.slice(-5).reverse().map((item, i) => `
+                <div class="saved-item">
+                    <span>${item.title}</span>
+                    <button onclick="deleteSaved(${savedContents.length - 1 - i})">删除</button>
+                </div>
+            `).join('');
+        }
+        
+        function deleteSaved(index) {
+            savedContents.splice(index, 1);
+            localStorage.setItem('savedContents', JSON.stringify(savedContents));
+            document.getElementById('savedCount').textContent = savedContents.length;
+            renderSaved();
+            if (savedContents.length === 0) {
+                document.getElementById('savedList').style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
